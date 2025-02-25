@@ -3,11 +3,15 @@ import HomeView from '../views/HomeView.vue'
 import ClientsView from '../views/ClientsView.vue'
 import Login from '../views/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
+import MfaView from '../views/MfaView.vue'
 
 const isAuthenticated = () => {
   const token = localStorage.getItem('authToken')
   return token !== null
 }
+
+// Define public routes that do not require an auth token
+const publicPaths = ['/', '/mfa', '/about']
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,6 +20,11 @@ const router = createRouter({
       path: '/',
       name: 'Login',
       component: Login,
+    },
+    {
+      path: '/mfa',
+      name: 'MfaVerification',
+      component: MfaView,
     },
     {
       path: '/dashboard',
@@ -27,7 +36,7 @@ const router = createRouter({
           component: HomeView,
         },
         {
-          path: 'clientes', // Corrigido (sem barra inicial)
+          path: 'clientes',
           name: 'Clientes',
           component: ClientsView,
         },
@@ -41,12 +50,13 @@ const router = createRouter({
   ],
 })
 
-// **Redirecionar todas as rotas para login se não autenticado**
+// Redirect to login if trying to access a non-public route without authentication
 router.beforeEach((to, from, next) => {
-  if (to.path !== '/' && !isAuthenticated()) {
-    next('/') // Redireciona para Login se não autenticado
+  if (!publicPaths.includes(to.path) && !isAuthenticated()) {
+    next('/') // Redirect to Login if not authenticated
   } else {
-    next() // Prossegue normalmente
+    next() // Proceed normally
   }
 })
+
 export default router
